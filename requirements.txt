@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+langchain
+langchain-core
+langchain-anthropic
+pytest
+httpx

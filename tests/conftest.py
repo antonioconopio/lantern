@@ -8,13 +8,22 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
 from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import RunnableLambda
 
-from app.config import Settings, get_llm, get_settings, get_vector_store
+from app.config import (
+    Settings,
+    get_history_store,
+    get_llm,
+    get_settings,
+    get_vector_store,
+)
 from app.main import app
 from lantern.answer import GroundedAnswer
+from lantern.memory import ChatHistoryStore
 
 
 class FakeStructuredChatModel(FakeListChatModel):
@@ -37,7 +46,9 @@ class FakeStructuredChatModel(FakeListChatModel):
         return RunnableLambda(respond)
 
 
-def make_fake_llm(**answer_fields) -> FakeStructuredChatModel:
+def make_fake_llm(rewrites=("REWRITTEN QUESTION",), **answer_fields) -> FakeStructuredChatModel:
+    """`rewrites` are the plain-text replies (used by the query-rewrite step);
+    `answer_fields` override the structured GroundedAnswer it returns."""
     fields = {
         "answer": "Lanterns burn oil [1].",
         "citations": [1],
@@ -45,7 +56,20 @@ def make_fake_llm(**answer_fields) -> FakeStructuredChatModel:
         "confidence": "high",
         **answer_fields,
     }
-    return FakeStructuredChatModel(responses=[""], structured=GroundedAnswer(**fields), calls=[])
+    return FakeStructuredChatModel(
+        responses=list(rewrites), structured=GroundedAnswer(**fields), calls=[]
+    )
+
+
+class RecordingRetriever(BaseRetriever):
+    """Returns fixed docs and records every query it's asked."""
+
+    docs: list[Document] = []
+    queries: list[str] = []
+
+    def _get_relevant_documents(self, query, *, run_manager):
+        self.queries.append(query)
+        return self.docs
 
 
 @pytest.fixture
@@ -75,5 +99,7 @@ def client(store, fake_llm, tmp_path):
     app.dependency_overrides[get_vector_store] = lambda: store
     app.dependency_overrides[get_llm] = lambda: fake_llm
     app.dependency_overrides[get_settings] = lambda: settings
+    histories = ChatHistoryStore(max_messages=10)
+    app.dependency_overrides[get_history_store] = lambda: histories
     yield TestClient(app)
     app.dependency_overrides.clear()

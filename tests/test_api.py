@@ -28,10 +28,13 @@ def test_upload_list_ask_delete(client):
 
     resp = client.post("/ask", json={"question": "What do lanterns burn?"})
     assert resp.status_code == 200
-    assert resp.json() == {
+    body = resp.json()
+    assert body.pop("session_id")
+    assert body == {
         "answer": "Lanterns burn oil [1].",
         "answerable": True,
         "confidence": "high",
+        "standalone_question": "What do lanterns burn?",
         "sources": [
             {
                 "index": 1,
@@ -80,6 +83,39 @@ def test_ask_unanswerable(client):
     assert body["answerable"] is False
     assert body["confidence"] == "low"
     assert body["sources"] == []
+
+
+def test_follow_up_in_same_session_is_rewritten(client):
+    upload(client)
+    use_answer(rewrites=["What fuel did older lanterns use?"])
+
+    first = client.post("/ask", json={"question": "What do lanterns burn?"}).json()
+    follow = client.post(
+        "/ask", json={"question": "And older ones?", "session_id": first["session_id"]}
+    ).json()
+
+    assert first["standalone_question"] == "What do lanterns burn?"
+    assert follow["session_id"] == first["session_id"]
+    assert follow["standalone_question"] == "What fuel did older lanterns use?"
+
+
+def test_new_session_each_time_without_session_id(client):
+    a = client.post("/ask", json={"question": "Q1"}).json()
+    b = client.post("/ask", json={"question": "Q2"}).json()
+
+    assert a["session_id"] != b["session_id"]
+    assert b["standalone_question"] == "Q2"  # no history, so no rewrite
+
+
+def test_clear_session(client):
+    sid = client.post("/ask", json={"question": "Q1"}).json()["session_id"]
+
+    assert client.delete(f"/sessions/{sid}").status_code == 204
+    assert client.delete(f"/sessions/{sid}").status_code == 404
+
+    # After clearing, the next question starts fresh: no rewrite.
+    after = client.post("/ask", json={"question": "Q2", "session_id": sid}).json()
+    assert after["standalone_question"] == "Q2"
 
 
 def test_upload_rejects_unsupported_type(client):

@@ -11,6 +11,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from lantern.memory import ChatHistoryStore
+
 load_dotenv()
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -25,6 +27,7 @@ class Settings(BaseSettings):
     chunk_size: int = 1000
     chunk_overlap: int = 150
     retrieval_k: int = 4
+    history_max_messages: int = 10
 
 @lru_cache
 def get_settings() -> Settings:
@@ -41,6 +44,12 @@ def get_llm() -> BaseChatModel:
 def get_embeddings() -> Embeddings:
     """Create the embedding model once (local models are slow to load)."""
     return init_embeddings(get_settings().embedding_model)
+
+
+@lru_cache
+def get_history_store() -> ChatHistoryStore:
+    """One shared history store for the process (lru_cache makes it a singleton)."""
+    return ChatHistoryStore(max_messages=get_settings().history_max_messages)
 
 
 @lru_cache

@@ -1,13 +1,20 @@
 """FastAPI entrypoint"""
 
 import shutil
+import uuid
 from pathlib import Path
-
+ 
 from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from langchain_core.language_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
-
-from app.config import Settings, get_llm, get_settings, get_vector_store
+ 
+from app.config import (
+    Settings,
+    get_history_store,
+    get_llm,
+    get_settings,
+    get_vector_store,
+)
 from app.schemas import AskRequest, AskResponse, DocumentInfo, Source
 from lantern.chains import build_rag_chain
 from lantern.ingest import (
@@ -17,6 +24,7 @@ from lantern.ingest import (
     ingest_file,
     list_documents,
 )
+from lantern.memory import ChatHistoryStore
 from lantern.retrieval import build_retriever
 
 app = FastAPI(title="Lantern", version="0.2.0")
@@ -76,11 +84,19 @@ async def ask(
     llm: BaseChatModel = Depends(get_llm),
     store: VectorStore = Depends(get_vector_store),
     settings: Settings = Depends(get_settings),
+    histories: ChatHistoryStore = Depends(get_history_store),
 ) -> AskResponse:
+    session_id = req.session_id or uuid.uuid4().hex
+    history = histories.get(session_id)
+ 
     retriever = build_retriever(store, k=settings.retrieval_k)
     chain = build_rag_chain(llm, retriever)
-    result = await chain.ainvoke({"question": req.question})
+    result = await chain.ainvoke({"question": req.question, "history": history})
     answer, docs = result["answer"], result["docs"]
+ 
+    # Save the turn only after a successful answer, so a failed request
+    # doesn't leave a question with no reply in the history.
+    histories.add_turn(session_id, req.question, answer.answer)
  
     # Return only the sources the model says it used. Ignore citation numbers
     # that don't match a retrieved chunk: models occasionally invent them.
@@ -100,4 +116,14 @@ async def ask(
         answerable=answer.answerable,
         confidence=answer.confidence,
         sources=sources,
+        session_id=session_id,
+        standalone_question=result["standalone_question"],
     )
+ 
+ 
+@app.delete("/sessions/{session_id}", status_code=204)
+def clear_session(
+    session_id: str, histories: ChatHistoryStore = Depends(get_history_store)
+):
+    if not histories.clear(session_id):
+        raise HTTPException(404, "Session not found")

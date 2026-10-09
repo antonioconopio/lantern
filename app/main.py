@@ -80,15 +80,24 @@ async def ask(
     retriever = build_retriever(store, k=settings.retrieval_k)
     chain = build_rag_chain(llm, retriever)
     result = await chain.ainvoke({"question": req.question})
-
+    answer, docs = result["answer"], result["docs"]
+ 
+    # Return only the sources the model says it used. Ignore citation numbers
+    # that don't match a retrieved chunk: models occasionally invent them.
+    cited = sorted({n for n in answer.citations if 1 <= n <= len(docs)})
     sources = [
         Source(
-            index=i,
-            document_id=d.metadata["document_id"],
-            document=d.metadata["filename"],
-            page=d.metadata["page"],
-            snippet=d.page_content[:SNIPPET_CHARS],
+            index=n,
+            document_id=docs[n - 1].metadata["document_id"],
+            document=docs[n - 1].metadata["filename"],
+            page=docs[n - 1].metadata["page"],
+            snippet=docs[n - 1].page_content[:SNIPPET_CHARS],
         )
-        for i, d in enumerate(result["docs"], start=1)
+        for n in cited
     ]
-    return AskResponse(answer=result["answer"], sources=sources)
+    return AskResponse(
+        answer=answer.answer,
+        answerable=answer.answerable,
+        confidence=answer.confidence,
+        sources=sources,
+    )

@@ -1,8 +1,11 @@
 """Chain tests with fake models: no real LLM calls."""
 
+import pytest
 from langchain_core.documents import Document
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from pydantic import ValidationError
 
+from lantern.answer import GroundedAnswer
 from lantern.chains import build_qa_chain, build_rag_chain, qa_prompt, rag_prompt
 from lantern.retrieval import build_retriever, format_docs
 
@@ -41,15 +44,39 @@ def test_rag_prompt_puts_context_in_system_message():
     assert messages[-1].content == "Q?"
 
 
-def test_rag_chain_returns_answer_and_retrieved_docs(store):
+def test_rag_chain_returns_structured_answer_and_retrieved_docs(store, fake_llm):
     store.add_documents(
         [Document(page_content="Lanterns burn oil.", metadata={"filename": "l.txt", "page": 1})]
     )
-    fake = FakeListChatModel(responses=["They burn oil [1]."])
-    chain = build_rag_chain(fake, build_retriever(store, k=4))
+    chain = build_rag_chain(fake_llm, build_retriever(store, k=4))
 
     result = chain.invoke({"question": "What do lanterns burn?"})
 
-    assert result["answer"] == "They burn oil [1]."
+    assert isinstance(result["answer"], GroundedAnswer)
+    assert result["answer"].citations == [1]
     assert result["question"] == "What do lanterns burn?"
     assert [d.page_content for d in result["docs"]] == ["Lanterns burn oil."]
+
+
+def test_rag_chain_sends_numbered_sources_to_model(store, fake_llm):
+    store.add_documents(
+        [Document(page_content="Lanterns burn oil.", metadata={"filename": "l.txt", "page": 3})]
+    )
+    build_rag_chain(fake_llm, build_retriever(store, k=4)).invoke({"question": "Q?"})
+
+    system, human = fake_llm.calls[0].to_messages()
+    assert "[1] l.txt, page 3\nLanterns burn oil." in system.content
+    assert human.content == "Q?"
+
+
+def test_grounded_answer_schema_validates_confidence():
+    with pytest.raises(ValidationError):
+        GroundedAnswer(answer="x", answerable=True, confidence="certain")
+
+
+def test_schema_binds_to_real_anthropic_model():
+    """Builds (but never calls) a real model, catching schema problems that
+    the fake model can't, such as types the provider's tool format rejects."""
+    anthropic = pytest.importorskip("langchain_anthropic")
+    model = anthropic.ChatAnthropic(model="claude-haiku-5-5", api_key="test-key")
+    assert model.with_structured_output(GroundedAnswer) is not None

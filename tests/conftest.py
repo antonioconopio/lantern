@@ -1,16 +1,51 @@
-"""Shared fixtures: an in-memory vector store with fake embeddings, and an API
-client wired to it. No API keys, network calls or model downloads needed."""
+"""Shared fixtures: an in-memory vector store with fake embeddings, a fake
+structured-output model, and an API client wired to both. No API keys,
+network calls or model downloads needed."""
 
 import uuid
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 from langchain_chroma import Chroma
 from langchain_core.embeddings import DeterministicFakeEmbedding
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from langchain_core.runnables import RunnableLambda
 
 from app.config import Settings, get_llm, get_settings, get_vector_store
 from app.main import app
+from lantern.answer import GroundedAnswer
+
+
+class FakeStructuredChatModel(FakeListChatModel):
+    """Fake chat model whose with_structured_output() returns a fixed object.
+
+    LangChain's built-in fakes don't support structured output, so this
+    stands in for it. Every prompt it receives is recorded in `calls`, so
+    tests can check what context reached the model.
+    """
+
+    structured: Any = None
+    calls: list = []
+
+    def with_structured_output(self, schema, **kwargs):
+        def respond(prompt_value):
+            self.calls.append(prompt_value)
+            assert isinstance(self.structured, schema)
+            return self.structured
+
+        return RunnableLambda(respond)
+
+
+def make_fake_llm(**answer_fields) -> FakeStructuredChatModel:
+    fields = {
+        "answer": "Lanterns burn oil [1].",
+        "citations": [1],
+        "answerable": True,
+        "confidence": "high",
+        **answer_fields,
+    }
+    return FakeStructuredChatModel(responses=[""], structured=GroundedAnswer(**fields), calls=[])
 
 
 @pytest.fixture
@@ -31,7 +66,7 @@ def store():
 
 @pytest.fixture
 def fake_llm():
-    return FakeListChatModel(responses=["Lanterns use wicks [1]."])
+    return make_fake_llm()
 
 
 @pytest.fixture

@@ -1,5 +1,6 @@
 """Request and response models"""
 
+from typing import Literal
 from pydantic import BaseModel, Field
 
 
@@ -18,6 +19,8 @@ class Source(BaseModel):
 
 class AskResponse(BaseModel):
     answer: str
+    answerable: bool
+    confidence: Literal["high", "medium", "low"]
     sources: list[Source]
 
 

@@ -36,8 +36,11 @@ class FakeStructuredChatModel(FakeListChatModel):
 
     structured: Any = None
     calls: list = []
+    structured_kwargs: dict = {}
 
     def with_structured_output(self, schema, **kwargs):
+        self.structured_kwargs = kwargs
+
         def respond(prompt_value):
             self.calls.append(prompt_value)
             assert isinstance(self.structured, schema)

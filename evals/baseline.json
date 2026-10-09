@@ -1,0 +1,1290 @@
+{
+  "config": {
+    "model": "anthropic:claude-haiku-5-5",
+    "judge_model": "anthropic:claude-haiku-5-5",
+    "embedding_model": "huggingface:sentence-transformers/all-MiniLM-L6-v2",
+    "k": 4,
+    "chunk_size": 1000,
+    "chunk_overlap": 150
+  },
+  "summary": {
+    "cases": 28,
+    "errors": 0,
+    "accuracy": 1.0,
+    "answerable_accuracy": 1.0,
+    "refusal_accuracy": 1.0,
+    "false_refusal_rate": 0.0,
+    "retrieval_hit_rate": 1.0,
+    "retrieval_recall": 1.0,
+    "citation_precision": 0.92,
+    "accuracy_by_confidence": {
+      "high": {
+        "n": 27,
+        "accuracy": 1.0
+      },
+      "low": {
+        "n": 1,
+        "accuracy": 1.0
+      }
+    },
+    "accuracy_by_tag": {
+      "follow-up": {
+        "n": 3,
+        "accuracy": 1.0
+      },
+      "multi": {
+        "n": 2,
+        "accuracy": 1.0
+      },
+      "near-miss": {
+        "n": 1,
+        "accuracy": 1.0
+      },
+      "outside-knowledge": {
+        "n": 1,
+        "accuracy": 1.0
+      },
+      "reasoning": {
+        "n": 3,
+        "accuracy": 1.0
+      },
+      "single": {
+        "n": 18,
+        "accuracy": 1.0
+      },
+      "unanswerable": {
+        "n": 5,
+        "accuracy": 1.0
+      }
+    },
+    "mean_latency_s": 1.727
+  },
+  "results": [
+    {
+      "id": "nw-student-price",
+      "tags": [
+        "single"
+      ],
+      "question": "How much does a student membership in the Northwind Cycling Club cost?",
+      "expected_answer": "$40 per year, with a valid student ID.",
+      "answerable_expected": true,
+      "standalone_question": "How much does a student membership in the Northwind Cycling Club cost?",
+      "answer": "A Student membership costs $40 per year and requires a valid student ID [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "latency_s": 2.52,
+      "correct": true,
+      "judge_reason": "The candidate states the same key facts as the reference: $40 per year and a valid student ID requirement. The citation marker is ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-late-renewal",
+      "tags": [
+        "single"
+      ],
+      "question": "What happens if I renew my Northwind membership after March 31?",
+      "expected_answer": "You pay a $15 reinstatement fee on top of the membership price.",
+      "answerable_expected": true,
+      "standalone_question": "What happens if I renew my Northwind membership after March 31?",
+      "answer": "Renewing after March 31 incurs a $15 reinstatement fee in addition to the membership price [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "latency_s": 2.51,
+      "correct": true,
+      "judge_reason": "The candidate states the same key fact as the reference: a $15 reinstatement fee applies on top of the membership price when renewing after March 31. The citation marker is ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-green-pace",
+      "tags": [
+        "single"
+      ],
+      "question": "What pace does the Green group ride at?",
+      "expected_answer": "Moderate, averaging 23 to 27 km/h.",
+      "answerable_expected": true,
+      "standalone_question": "What pace does the Green group ride at?",
+      "answer": "The Green group is the moderate pace group, averaging 23 to 27 km/h [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "latency_s": 2.52,
+      "correct": true,
+      "judge_reason": "The candidate states the Green group rides at a moderate pace averaging 23 to 27 km/h, matching the reference answer's key facts. The citation marker is ignored.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-black-drop",
+      "tags": [
+        "single"
+      ],
+      "question": "Is the Black group a no-drop ride?",
+      "expected_answer": "No. Black is a drop ride; riders who can't hold the pace must find their own way home.",
+      "answerable_expected": true,
+      "standalone_question": "Is the Black group a no-drop ride?",
+      "answer": "No. The Black group is a fast group averaging 28 km/h or more, and it is a drop ride, meaning riders who cannot hold the pace are expected to find their own way home [1]. Blue and Green are the no-drop groups [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "latency_s": 2.6,
+      "correct": true,
+      "judge_reason": "The candidate answers 'No' and states that the Black group is a drop ride where riders who cannot keep pace must find their own way home, matching the reference. The extra details about 28 km/h and Blue/Green being no-drop do not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-rear-light",
+      "tags": [
+        "single"
+      ],
+      "question": "When do I need a rear light on a club ride?",
+      "expected_answer": "For any ride that starts before 7:00 a.m.",
+      "answerable_expected": true,
+      "standalone_question": "When do I need a rear light on a club ride?",
+      "answer": "A working rear light is required for any ride that starts before 7:00 a.m. [1]",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "latency_s": 1.53,
+      "correct": true,
+      "judge_reason": "The candidate states the same key fact as the reference: a rear light is required for any ride starting before 7:00 a.m. The citation marker is ignored and the added 'working' detail does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-incident",
+      "tags": [
+        "single"
+      ],
+      "question": "How soon do I have to report a crash, and how?",
+      "expected_answer": "Within 48 hours, to the club safety officer, using the online incident form.",
+      "answerable_expected": true,
+      "standalone_question": "How soon do I have to report a crash, and how?",
+      "answer": "Any crash, injury or near miss must be reported to the club safety officer within 48 hours using the online incident form [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "latency_s": 1.58,
+      "correct": true,
+      "judge_reason": "The candidate gives the same key facts as the reference: report within 48 hours, to the club safety officer, via the online incident form. The extra detail about injuries and near misses does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-cancellation",
+      "tags": [
+        "single"
+      ],
+      "question": "When are Northwind rides cancelled because of weather?",
+      "expected_answer": "When it is below -5 degrees Celsius at the start time or lightning is forecast.",
+      "answerable_expected": true,
+      "standalone_question": "When are Northwind rides cancelled because of weather?",
+      "answer": "Rides are cancelled if the temperature is below -5 degrees Celsius at the start time or if lightning is forecast [1]. Cancellations are posted in the club group chat by 6:00 a.m. on the day of the ride [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "latency_s": 1.44,
+      "correct": true,
+      "judge_reason": "The candidate states both key conditions from the reference: temperature below -5 degrees Celsius at start time and lightning forecast. The extra detail about posting cancellations does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-century",
+      "tags": [
+        "single"
+      ],
+      "question": "How long is the Lakeshore Century and when is it held?",
+      "expected_answer": "160 km, on the second Saturday of September.",
+      "answerable_expected": true,
+      "standalone_question": "How long is the Lakeshore Century and when is it held?",
+      "answer": "The Lakeshore Century is a 160 km ride held on the second Saturday of September each year [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ]
+      ],
+      "latency_s": 1.38,
+      "correct": true,
+      "judge_reason": "The candidate states the same key facts as the reference: 160 km length and held on the second Saturday of September. The added 'each year' and citation marker do not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "nw-volunteer-perk",
+      "tags": [
+        "single"
+      ],
+      "question": "What do Northwind members get for volunteering?",
+      "expected_answer": "Volunteering at least 4 hours per season is required of every member; members who meet it get a 20% discount at Spoke & Gear.",
+      "answerable_expected": true,
+      "standalone_question": "What do Northwind members get for volunteering?",
+      "answer": "Members who complete the required volunteering (at least 4 hours per season, e.g. as a ride marshal or at a rest stop) receive a 20% discount at the partner shop, Spoke & Gear [2].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ]
+      ],
+      "latency_s": 1.49,
+      "correct": true,
+      "judge_reason": "The candidate states the key facts: the 4-hour-per-season volunteering requirement and the 20% discount at Spoke & Gear. The extra examples (ride marshal, rest stop) do not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "ab-capacity",
+      "tags": [
+        "single"
+      ],
+      "question": "What is the usable capacity of the AB-200 battery?",
+      "expected_answer": "11.2 kWh.",
+      "answerable_expected": true,
+      "standalone_question": "What is the usable capacity of the AB-200 battery?",
+      "answer": "The AB-200 has a usable capacity of 11.2 kWh [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 1.43,
+      "correct": true,
+      "judge_reason": "The candidate states the usable capacity is 11.2 kWh, matching the reference answer. The citation marker is ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "ab-e07",
+      "tags": [
+        "single"
+      ],
+      "question": "My AB-200 shows error E07. What does it mean and how do I fix it?",
+      "expected_answer": "A communication fault; restart the gateway by holding its button for 10 seconds.",
+      "answerable_expected": true,
+      "standalone_question": "My AB-200 shows error E07. What does it mean and how do I fix it?",
+      "answer": "Error E07 means a communication fault. To fix it, restart the gateway by holding its button for 10 seconds [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 1.44,
+      "correct": true,
+      "judge_reason": "The candidate states E07 is a communication fault and gives the same fix as the reference: restart the gateway by holding its button for 10 seconds. It matches the key facts with no contradiction.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "ab-cold-charging",
+      "tags": [
+        "single",
+        "reasoning"
+      ],
+      "question": "Will the AB-200 charge when it's -5\u00b0C?",
+      "expected_answer": "No. Charging is disabled below 0\u00b0C, although it can still discharge down to -10\u00b0C.",
+      "answerable_expected": true,
+      "standalone_question": "Will the AB-200 charge when it's -5\u00b0C?",
+      "answer": "No. Charging is disabled below 0\u00b0C, so the AB-200 will not charge at -5\u00b0C. It can still discharge between -10\u00b0C and 0\u00b0C, and its operating range is -10\u00b0C to 45\u00b0C [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 1.62,
+      "correct": true,
+      "judge_reason": "The candidate answers No, states charging is disabled below 0\u00b0C, and notes discharge is possible down to -10\u00b0C, matching the reference's key facts. The extra operating range detail does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "ab-default-reserve",
+      "tags": [
+        "single",
+        "reasoning"
+      ],
+      "question": "What backup reserve does the AB-200 keep in its default mode?",
+      "expected_answer": "20%, in Self-Powered mode (the default).",
+      "answerable_expected": true,
+      "standalone_question": "What backup reserve does the AB-200 keep in its default mode?",
+      "answer": "In its default Self-Powered mode, the AB-200 keeps a backup reserve of 20%, which can be changed in the app [2].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 1.42,
+      "correct": true,
+      "judge_reason": "The candidate states the 20% backup reserve in the default Self-Powered mode, matching the reference. The extra note about changing it in the app is additional detail that does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "ab-warranty",
+      "tags": [
+        "single"
+      ],
+      "question": "What does the AB-200 warranty cover?",
+      "expected_answer": "10 years or 6,000 full cycles, whichever comes first, with at least 70% of original capacity retained.",
+      "answerable_expected": true,
+      "standalone_question": "What does the AB-200 warranty cover?",
+      "answer": "The AB-200 is covered for 10 years or 6,000 full charge cycles, whichever comes first. Aurora guarantees the battery will retain at least 70% of its original capacity during the warranty period [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 1.68,
+      "correct": true,
+      "judge_reason": "The candidate states the same key facts as the reference: 10 years or 6,000 full cycles, whichever comes first, and at least 70% original capacity retained. The added vendor name is an extra detail that does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "lib-adult-limit",
+      "tags": [
+        "single"
+      ],
+      "question": "How many items can I borrow at once with an adult library card?",
+      "expected_answer": "Up to 25 items.",
+      "answerable_expected": true,
+      "standalone_question": "How many items can I borrow at once with an adult library card?",
+      "answer": "An adult library card may have up to 25 items checked out at a time [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 1.03,
+      "correct": true,
+      "judge_reason": "The candidate states up to 25 items checked out at a time, matching the reference answer's key fact. The citation marker is ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "lib-adult-fine",
+      "tags": [
+        "single"
+      ],
+      "question": "What is the overdue fine for an adult book at Fern Valley library?",
+      "expected_answer": "$0.25 per day, up to a maximum of $10 per item.",
+      "answerable_expected": true,
+      "standalone_question": "What is the overdue fine for an adult book at Fern Valley library?",
+      "answer": "Overdue adult materials are charged $0.25 per day, up to a maximum of $10 per item [1]. The sources don't specify a separate fine for books specifically, but this rate applies to overdue adult materials, which include adult books.",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 1.17,
+      "correct": true,
+      "judge_reason": "The candidate gives the same key facts as the reference: $0.25 per day with a $10 per item maximum. Its added note that the rate applies to adult materials including books is consistent with the reference and does not contradict it.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "lib-laptop",
+      "tags": [
+        "single",
+        "reasoning"
+      ],
+      "question": "Can I take a library laptop home?",
+      "expected_answer": "No. Laptops are loaned for 3 hours and can only be used inside the library building.",
+      "answerable_expected": true,
+      "standalone_question": "Can I take a library laptop home?",
+      "answer": "No. Library laptops have a 3-hour loan period and are for use inside the library building only [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 1.32,
+      "correct": true,
+      "judge_reason": "The candidate says no, a 3-hour loan period, and in-library use only, which matches the reference's key facts. The citation marker is ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "lib-sunday",
+      "tags": [
+        "single"
+      ],
+      "question": "Is Fern Valley library open on Sundays?",
+      "expected_answer": "No, it is closed on Sundays.",
+      "answerable_expected": true,
+      "standalone_question": "Is Fern Valley library open on Sundays?",
+      "answer": "No. The Fern Valley Public Library is closed on Sundays and statutory holidays [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 1.39,
+      "correct": true,
+      "judge_reason": "The candidate says the library is closed on Sundays, matching the reference answer's key fact. The extra mention of statutory holidays does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "multi-cost",
+      "tags": [
+        "multi"
+      ],
+      "question": "If I'm not a Fern Valley resident, how much would a library card plus a Standard Northwind membership cost per year in total?",
+      "expected_answer": "$145 per year ($60 for the non-resident library card plus $85 for a Standard membership).",
+      "answerable_expected": true,
+      "standalone_question": "If I'm not a Fern Valley resident, how much would a library card plus a Standard Northwind membership cost per year in total?",
+      "answer": "A non-resident library card costs $60 per year [2], and a Standard Northwind membership costs $85 per year [1], for a total of $145 per year.",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 1.61,
+      "correct": true,
+      "judge_reason": "The candidate gives the same figures as the reference: $60 non-resident library card plus $85 Standard membership, totaling $145 per year. Citation markers are ignored as instructed.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "multi-no-drop",
+      "tags": [
+        "multi"
+      ],
+      "question": "Which Northwind pace groups are no-drop rides, and how fast does each go?",
+      "expected_answer": "Blue (18 to 22 km/h) and Green (23 to 27 km/h).",
+      "answerable_expected": true,
+      "standalone_question": "Which Northwind pace groups are no-drop rides, and how fast does each go?",
+      "answer": "Blue and Green are no-drop rides, meaning the group waits for anyone who falls behind [1]. Blue is the casual group, averaging 18 to 22 km/h [1]. Green is the moderate group, averaging 23 to 27 km/h [1]. Black is the fast group (28 km/h or more) and is a drop ride, not no-drop [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "latency_s": 1.69,
+      "correct": true,
+      "judge_reason": "The candidate correctly identifies Blue (18 to 22 km/h) and Green (23 to 27 km/h) as the no-drop groups with matching speeds, which matches the reference. The extra details about Black being a drop ride do not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "un-ab-price",
+      "tags": [
+        "unanswerable"
+      ],
+      "question": "How much does the AB-200 battery cost?",
+      "expected_answer": "Not stated in the documents.",
+      "answerable_expected": false,
+      "standalone_question": "How much does the AB-200 battery cost?",
+      "answer": "The documents I was given don't include the AB-200's price. They cover its specifications, operating modes, error codes, updates, and warranty, but not cost.",
+      "answerable_predicted": false,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [],
+      "latency_s": 1.5,
+      "correct": true,
+      "judge_reason": "Correctly declined.",
+      "retrieval_hit": null,
+      "retrieval_recall": null,
+      "citation_precision": null,
+      "error": null
+    },
+    {
+      "id": "un-nw-founder",
+      "tags": [
+        "unanswerable",
+        "near-miss"
+      ],
+      "question": "Who founded the Northwind Cycling Club?",
+      "expected_answer": "Not stated in the documents (only the year and town are given).",
+      "answerable_expected": false,
+      "standalone_question": "Who founded the Northwind Cycling Club?",
+      "answer": "The sources don't name the founder. They only state that the club was founded in 2011 in Kestrel Bay [1].",
+      "answerable_predicted": false,
+      "confidence": "low",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "latency_s": 1.49,
+      "correct": true,
+      "judge_reason": "Correctly declined.",
+      "retrieval_hit": null,
+      "retrieval_recall": null,
+      "citation_precision": 0.0,
+      "error": null
+    },
+    {
+      "id": "un-lib-3d",
+      "tags": [
+        "unanswerable"
+      ],
+      "question": "Does Fern Valley library have a 3D printer?",
+      "expected_answer": "Not stated in the documents.",
+      "answerable_expected": false,
+      "standalone_question": "Does Fern Valley library have a 3D printer?",
+      "answer": "I couldn't find that in the documents. The Fern Valley Public Library policies cover hours, library cards, borrowing limits, loan periods, renewals, fines, and meeting room bookings, but they don't mention a 3D printer.",
+      "answerable_predicted": false,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [],
+      "latency_s": 1.47,
+      "correct": true,
+      "judge_reason": "Correctly declined.",
+      "retrieval_hit": null,
+      "retrieval_recall": null,
+      "citation_precision": null,
+      "error": null
+    },
+    {
+      "id": "un-nw-members",
+      "tags": [
+        "unanswerable"
+      ],
+      "question": "How many members does Northwind Cycling Club have?",
+      "expected_answer": "Not stated in the documents.",
+      "answerable_expected": false,
+      "standalone_question": "How many members does Northwind Cycling Club have?",
+      "answer": "The sources don't say how many members Northwind Cycling Club has. They cover membership tiers and prices [1], but no membership count.",
+      "answerable_predicted": false,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "latency_s": 1.49,
+      "correct": true,
+      "judge_reason": "Correctly declined.",
+      "retrieval_hit": null,
+      "retrieval_recall": null,
+      "citation_precision": 0.0,
+      "error": null
+    },
+    {
+      "id": "un-outside",
+      "tags": [
+        "unanswerable",
+        "outside-knowledge"
+      ],
+      "question": "What is the capital of France?",
+      "expected_answer": "Not stated in the documents; the model should not answer from outside knowledge.",
+      "answerable_expected": false,
+      "standalone_question": "What is the capital of France?",
+      "answer": "I couldn't find that in the documents. The sources cover Northwind Cycling Club and a library's meeting room policies, and nothing about France.",
+      "answerable_predicted": false,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "cited": [],
+      "latency_s": 1.57,
+      "correct": true,
+      "judge_reason": "Correctly declined.",
+      "retrieval_hit": null,
+      "retrieval_recall": null,
+      "citation_precision": null,
+      "error": null
+    },
+    {
+      "id": "fu-ab-e12",
+      "tags": [
+        "follow-up"
+      ],
+      "question": "And what about E12?",
+      "expected_answer": "Cell imbalance; contact Aurora support and don't restart the battery more than twice.",
+      "answerable_expected": true,
+      "standalone_question": "And what does error code E12 mean on the AB-200?",
+      "answer": "E12 indicates cell imbalance. The recommended action is to contact Aurora support, and not to restart the battery more than twice [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          3
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ]
+      ],
+      "cited": [
+        [
+          "ab200_battery_manual.md",
+          1
+        ]
+      ],
+      "latency_s": 2.63,
+      "correct": true,
+      "judge_reason": "The candidate states E12 indicates cell imbalance, recommends contacting Aurora support, and not restarting the battery more than twice, matching all key facts in the reference answer.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "fu-lib-renew",
+      "tags": [
+        "follow-up"
+      ],
+      "question": "How many times can I renew it?",
+      "expected_answer": "Up to 2 times, unless someone has placed a hold on it.",
+      "answerable_expected": true,
+      "standalone_question": "How many times can I renew a DVD borrowed from the Fern Valley library?",
+      "answer": "Items, including DVDs, can be renewed up to 2 times, unless another patron has placed a hold on the item [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ],
+        [
+          "ab200_battery_manual.md",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "latency_s": 2.25,
+      "correct": true,
+      "judge_reason": "The candidate states up to 2 renewals unless another patron has placed a hold, which matches the reference's key facts. The extra detail about DVDs does not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    },
+    {
+      "id": "fu-nw-family",
+      "tags": [
+        "follow-up"
+      ],
+      "question": "How many people does it cover?",
+      "expected_answer": "Up to four people living in the same household.",
+      "answerable_expected": true,
+      "standalone_question": "How many people does a Northwind Family membership cover?",
+      "answer": "A Family membership covers up to four people living in the same household [1].",
+      "answerable_predicted": true,
+      "confidence": "high",
+      "retrieved": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          4
+        ],
+        [
+          "northwind_cycling_handbook.pdf",
+          2
+        ],
+        [
+          "fern_valley_library_policies.txt",
+          1
+        ]
+      ],
+      "cited": [
+        [
+          "northwind_cycling_handbook.pdf",
+          1
+        ]
+      ],
+      "latency_s": 2.59,
+      "correct": true,
+      "judge_reason": "The candidate states the key fact from the reference: up to four people living in the same household. The extra mention of 'Family membership' and the citation marker do not contradict the reference.",
+      "retrieval_hit": true,
+      "retrieval_recall": 1.0,
+      "citation_precision": 1.0,
+      "error": null
+    }
+  ]
+}

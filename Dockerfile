@@ -16,6 +16,10 @@ RUN apt-get update \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# CPU-only PyTorch for local embeddings; the default Linux wheel bundles
+# CUDA and adds several GB to the image
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+
 # Install dependencies first so this layer is cached between code changes
 COPY requirements.txt .
 RUN pip install -r requirements.txt

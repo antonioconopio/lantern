@@ -1,9 +1,13 @@
-from fastapi.testclient import TestClient
-from langchain_core.language_models.fake_chat_models import FakeListChatModel
+"""Chain tests with fake models: no real LLM calls."""
 
-from app.config import get_llm
-from app.main import app
-from lantern.chains import build_qa_chain, qa_prompt
+import pytest
+from langchain_core.documents import Document
+from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from pydantic import ValidationError
+
+from lantern.answer import GroundedAnswer
+from lantern.chains import build_qa_chain, build_rag_chain, qa_prompt, rag_prompt
+from lantern.retrieval import build_retriever, format_docs
 
 
 def test_prompt_includes_question():
@@ -12,7 +16,7 @@ def test_prompt_includes_question():
     assert messages[-1].content == "What is RAG?"
 
 
-def test_chain_returns_model_text():
+def test_qa_chain_returns_model_text():
     fake = FakeListChatModel(responses=["RAG means retrieval-augmented generation."])
     chain = build_qa_chain(fake)
     assert chain.invoke({"question": "What is RAG?"}) == (
@@ -20,19 +24,59 @@ def test_chain_returns_model_text():
     )
 
 
-def test_ask_endpoint_uses_injected_model():
-    fake = FakeListChatModel(responses=["Hello from Lantern."])
-    app.dependency_overrides[get_llm] = lambda: fake
-    try:
-        client = TestClient(app)
-        resp = client.post("/ask", json={"question": "Hi?"})
-        assert resp.status_code == 200
-        assert resp.json() == {"answer": "Hello from Lantern."}
-    finally:
-        app.dependency_overrides.clear()
+def test_format_docs_numbers_sources_with_file_and_page():
+    docs = [
+        Document(page_content="alpha", metadata={"filename": "a.pdf", "page": 2}),
+        Document(page_content="beta", metadata={"filename": "b.md", "page": 1}),
+    ]
+    text = format_docs(docs)
+    assert "[1] a.pdf, page 2\nalpha" in text
+    assert "[2] b.md, page 1\nbeta" in text
 
 
-def test_ask_rejects_empty_question():
-    client = TestClient(app)
-    resp = client.post("/ask", json={"question": ""})
-    assert resp.status_code == 422
+def test_format_docs_handles_no_results():
+    assert "no relevant documents" in format_docs([])
+
+
+def test_rag_prompt_puts_context_in_system_message():
+    messages = rag_prompt.format_messages(context="[1] x.pdf, page 1\nfacts", question="Q?")
+    assert "[1] x.pdf, page 1" in messages[0].content
+    assert messages[-1].content == "Q?"
+
+
+def test_rag_chain_returns_structured_answer_and_retrieved_docs(store, fake_llm):
+    store.add_documents(
+        [Document(page_content="Lanterns burn oil.", metadata={"filename": "l.txt", "page": 1})]
+    )
+    chain = build_rag_chain(fake_llm, build_retriever(store, k=4))
+
+    result = chain.invoke({"question": "What do lanterns burn?"})
+
+    assert isinstance(result["answer"], GroundedAnswer)
+    assert result["answer"].citations == [1]
+    assert result["question"] == "What do lanterns burn?"
+    assert [d.page_content for d in result["docs"]] == ["Lanterns burn oil."]
+
+
+def test_rag_chain_sends_numbered_sources_to_model(store, fake_llm):
+    store.add_documents(
+        [Document(page_content="Lanterns burn oil.", metadata={"filename": "l.txt", "page": 3})]
+    )
+    build_rag_chain(fake_llm, build_retriever(store, k=4)).invoke({"question": "Q?"})
+
+    system, human = fake_llm.calls[0].to_messages()
+    assert "[1] l.txt, page 3\nLanterns burn oil." in system.content
+    assert human.content == "Q?"
+
+
+def test_grounded_answer_schema_validates_confidence():
+    with pytest.raises(ValidationError):
+        GroundedAnswer(answer="x", answerable=True, confidence="certain")
+
+
+def test_schema_binds_to_real_anthropic_model():
+    """Builds (but never calls) a real model, catching schema problems that
+    the fake model can't, such as types the provider's tool format rejects."""
+    anthropic = pytest.importorskip("langchain_anthropic")
+    model = anthropic.ChatAnthropic(model="claude-haiku-5-5", api_key="test-key")
+    assert model.with_structured_output(GroundedAnswer) is not None

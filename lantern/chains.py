@@ -99,7 +99,7 @@ def build_rag_chain(llm: BaseChatModel, retriever: BaseRetriever) -> Runnable:
     generate = (
         RunnablePassthrough.assign(context=lambda x: format_docs(x["docs"]))
         | rag_prompt
-        | llm.with_structured_output(GroundedAnswer)
+        | llm.with_structured_output(GroundedAnswer, method="json_schema")
     )
 
     # Each .assign adds one key and keeps everything before it.

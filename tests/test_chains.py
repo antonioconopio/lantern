@@ -143,12 +143,33 @@ def test_rag_chain_sends_numbered_sources_to_model(store, fake_llm):
 
 def test_grounded_answer_schema_validates_confidence():
     with pytest.raises(ValidationError):
-        GroundedAnswer(answer="x", answerable=True, confidence="certain")
+        GroundedAnswer(answer="x", citations=[], answerable=True, confidence="certain")
 
 
-def test_schema_binds_to_real_anthropic_model():
-    """Builds (but never calls) a real model, catching schema problems that
-    the fake model can't, such as types the provider's tool format rejects."""
+def test_grounded_answer_accepts_any_case_confidence():
+    a = GroundedAnswer(answer="x", citations=[], answerable=True, confidence="High")
+    assert a.confidence == "high"
+
+
+def test_grounded_answer_requires_every_field():
+    """The eval run caught the model omitting `answerable`; all fields stay required."""
+    with pytest.raises(ValidationError):
+        GroundedAnswer(answer="x", citations=[1], confidence="high")
+
+
+def test_rag_chain_uses_strict_structured_outputs(store, fake_llm):
+    build_rag_chain(fake_llm, build_retriever(store, k=4))
+    assert fake_llm.structured_kwargs == {"method": "json_schema"}
+
+
+def test_schema_compiles_for_anthropic_structured_outputs():
+    """Builds (but never calls) a real model and checks the exact schema the
+    API receives: every field required and no extra properties allowed."""
     anthropic = pytest.importorskip("langchain_anthropic")
     model = anthropic.ChatAnthropic(model="claude-haiku-5-5", api_key="test-key")
-    assert model.with_structured_output(GroundedAnswer) is not None
+    bound = model.with_structured_output(GroundedAnswer, method="json_schema").first
+    schema = bound.kwargs["output_config"]["format"]["schema"]
+
+    assert set(schema["required"]) == {"answer", "citations", "answerable", "confidence"}
+    assert schema["additionalProperties"] is False
+    assert schema["properties"]["confidence"]["enum"] == ["high", "medium", "low"]

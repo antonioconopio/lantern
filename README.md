@@ -4,6 +4,12 @@ Ask questions about your documents and get answers with page-level citations.
 
 Lantern is a retrieval-augmented generation (RAG) service built with LangChain and FastAPI. Upload PDFs, Markdown or text files, ask questions in plain language, and get structured answers grounded in your documents, each tied back to the file and page it came from. It handles follow-up questions, declines questions the documents can't answer, and is measured against an evaluation suite.
 
+## Demo
+
+
+https://github.com/user-attachments/assets/d244a698-15ff-4b08-90b7-2978758b9bfb
+
+
 ## Features
 
 - **Grounded answers with citations.** Every answer cites its sources inline (`[1]`, `[2]`), and the API returns the filename, page and a snippet for each one.

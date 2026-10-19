@@ -5,6 +5,7 @@ import uuid
 from pathlib import Path
  
 from fastapi import Depends, FastAPI, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from langchain_core.language_models import BaseChatModel
 from langchain_core.vectorstores import VectorStore
  
@@ -31,6 +32,11 @@ from lantern.retrieval import build_retriever
 app = FastAPI(title="Lantern", version="0.2.0")
 
 SNIPPET_CHARS = 300
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/health")

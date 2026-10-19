@@ -30,6 +30,7 @@ class CaseResult(BaseModel):
     retrieved: list[Key] = []
     cited: list[Key] = []
     latency_s: float | None = None
+    steps: list[dict] = []
 
     # Scores
     correct: bool = False
@@ -108,5 +109,6 @@ def summarize(results: list[CaseResult]) -> dict:
         "accuracy_by_tag": {
             tag: {"n": len(v), "accuracy": _rate(v)} for tag, v in sorted(by_tag.items())
         },
+        "mean_tool_calls": _avg([len(r.steps) for r in results if r.error is None]),
         "mean_latency_s": _avg([r.latency_s for r in results if r.latency_s is not None]),
     }

@@ -11,6 +11,10 @@ class AskRequest(BaseModel):
         max_length=100,
         description="Omit to start a new conversation; send back the returned id for follow-ups.",
     )
+    mode: Literal["rag", "agent"] = Field(
+        default="rag",
+        description="rag: fixed rewrite-retrieve-answer pipeline. agent: the model chooses its own tool calls.",
+    )
 
 
 class Source(BaseModel):
@@ -23,6 +27,11 @@ class Source(BaseModel):
     snippet: str
 
 
+class ToolStep(BaseModel):
+    tool: str
+    input: dict
+
+
 class AskResponse(BaseModel):
     answer: str
     answerable: bool
@@ -32,6 +41,8 @@ class AskResponse(BaseModel):
     standalone_question: str = Field(
         description="The question as sent to the retriever, after rewriting follow-ups."
     )
+    mode: Literal["rag", "agent"]
+    steps: list[ToolStep]
 
 
 class DocumentInfo(BaseModel):

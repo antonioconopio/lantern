@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     chunk_overlap: int = 150
     retrieval_k: int = 4
     history_max_messages: int = 10
+    agent_max_tool_calls: int = 6
 
 @lru_cache
 def get_settings() -> Settings:

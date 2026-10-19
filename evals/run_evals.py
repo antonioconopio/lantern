@@ -33,6 +33,7 @@ from evals.metrics import (
     retrieval_recall,
     summarize,
 )
+from lantern.agents.graph import build_agent_chain
 from lantern.chains import build_rag_chain
 from lantern.ingest import SUPPORTED_EXTENSIONS, ingest_file
 from lantern.retrieval import build_retriever
@@ -74,6 +75,9 @@ async def evaluate_case(case: EvalCase, chain: Runnable, judge: Runnable) -> Cas
 
         answer, docs = out["answer"], out["docs"]
         result.standalone_question = out["standalone_question"]
+        result.steps = out["steps"] if "steps" in out else [
+            {"tool": "search_documents", "input": {"query": out["standalone_question"]}}
+        ]
         result.answer = answer.answer
         result.answerable_predicted = answer.answerable
         result.confidence = answer.confidence
@@ -142,6 +146,7 @@ def print_report(summary: dict, results: list[CaseResult]) -> None:
     for label, value in rows:
         print(f"{label:<36}{value}")
     print(f"{'Mean latency':<36}{summary['mean_latency_s']}s")
+    print(f"{'Mean tool calls':<36}{summary['mean_tool_calls']}")
     if summary["errors"]:
         print(f"{'Errors':<36}{summary['errors']}")
 
@@ -165,6 +170,8 @@ def print_report(summary: dict, results: list[CaseResult]) -> None:
             print(f"  expected:   {r.expected_answer}")
             print(f"  got:        {r.answer}")
             print(f"  why:        {r.judge_reason}")
+            if len(r.steps) != 1 or r.steps[0]["tool"] != "search_documents":
+                print(f"  tools:      {[(s['tool'], s['input']) for s in r.steps]}")
             if r.retrieval_hit is False:
                 print("  retrieval:  MISSED the expected source (a retrieval problem, not the prompt)")
 
@@ -176,6 +183,8 @@ def parse_args(argv, settings) -> argparse.Namespace:
     p.add_argument("--chunk-overlap", type=int, default=settings.chunk_overlap)
     p.add_argument("--model", default=settings.llm_model, help="model being evaluated")
     p.add_argument("--judge-model", default=None, help="defaults to --model")
+    p.add_argument("--mode", choices=["rag", "agent"], default="rag", help="pipeline to evaluate")
+    p.add_argument("--max-tool-calls", type=int, default=settings.agent_max_tool_calls)
     p.add_argument("--only", action="append", help="run only these case ids (repeatable)")
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument("--fail-under", type=float, default=None, help="exit 1 if accuracy is below this")
@@ -201,9 +210,12 @@ def main(argv=None) -> int:
 
     llm = init_chat_model(args.model)
     judge_llm = init_chat_model(args.judge_model) if args.judge_model else llm
-    chain = build_rag_chain(llm, build_retriever(store, k=args.k))
+    if args.mode == "agent":
+        chain = build_agent_chain(llm, store, k=args.k, max_tool_calls=args.max_tool_calls)
+    else:
+        chain = build_rag_chain(llm, build_retriever(store, k=args.k))
 
-    print(f"Running {len(cases)} cases with {args.model} (k={args.k})...")
+    print(f"Running {len(cases)} cases in {args.mode} mode with {args.model} (k={args.k})...")
     results = asyncio.run(run_cases(cases, chain, build_judge(judge_llm), args.concurrency))
     summary = summarize(results)
     print_report(summary, results)
@@ -214,6 +226,8 @@ def main(argv=None) -> int:
         "model": args.model,
         "judge_model": args.judge_model or args.model,
         "embedding_model": settings.embedding_model,
+        "mode": args.mode,
+        "max_tool_calls": args.max_tool_calls,
         "k": args.k,
         "chunk_size": args.chunk_size,
         "chunk_overlap": args.chunk_overlap,

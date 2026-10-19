@@ -10,7 +10,11 @@ from fastapi.testclient import TestClient
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import DeterministicFakeEmbedding
-from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from langchain_core.language_models.fake_chat_models import (
+    FakeListChatModel,
+    FakeMessagesListChatModel,
+)
+from langchain_core.messages import AIMessage
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import RunnableLambda
 
@@ -61,6 +65,59 @@ def make_fake_llm(rewrites=("REWRITTEN QUESTION",), **answer_fields) -> FakeStru
     }
     return FakeStructuredChatModel(
         responses=list(rewrites), structured=GroundedAnswer(**fields), calls=[]
+    )
+
+
+class FakeAgentChatModel(FakeMessagesListChatModel):
+    """Fake model for the agent graph. Replies come from `responses` in order
+    (AIMessages, with or without tool calls); with_structured_output() returns
+    `structured`. LangChain's built-in fakes raise on bind_tools(), so this
+    stands in. Prompts are recorded in `agent_calls` / `respond_calls`."""
+
+    structured: Any = None
+    agent_calls: list = []
+    respond_calls: list = []
+    bound_tools: list = []
+
+    def bind_tools(self, tools, **kwargs):
+        self.bound_tools = [t.name for t in tools]
+        return RunnableLambda(self._agent_turn)
+
+    def _agent_turn(self, messages):
+        self.agent_calls.append(messages)
+        return self.invoke(messages)  # next scripted AIMessage
+
+    def with_structured_output(self, schema, **kwargs):
+        def respond(prompt):
+            self.respond_calls.append(prompt)
+            return self.structured
+
+        return RunnableLambda(respond)
+
+
+def search_call(query, call_id="s1"):
+    return {"name": "search_documents", "args": {"query": query}, "id": call_id}
+
+
+def make_fake_agent(*turns, **answer_fields) -> FakeAgentChatModel:
+    """Each turn is one agent step's list of tool calls, e.g.
+    make_fake_agent([search_call("a")], [search_call("b")]) scripts two
+    searches and then a stop."""
+    responses = [AIMessage("", tool_calls=calls) for calls in turns]
+    responses.append(AIMessage("Found what was needed."))  # ends the loop
+    fields = {
+        "answer": "Lanterns burn oil [1].",
+        "citations": [1],
+        "answerable": True,
+        "confidence": "high",
+        **answer_fields,
+    }
+    return FakeAgentChatModel(
+        responses=responses,
+        structured=GroundedAnswer(**fields),
+        agent_calls=[],
+        respond_calls=[],
+        bound_tools=[],
     )
 
 

@@ -35,6 +35,8 @@ def test_upload_list_ask_delete(client):
         "answerable": True,
         "confidence": "high",
         "standalone_question": "What do lanterns burn?",
+        "mode": "rag",
+        "steps": [{"tool": "search_documents", "input": {"query": "What do lanterns burn?"}}],
         "sources": [
             {
                 "index": 1,

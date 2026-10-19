@@ -19,11 +19,12 @@ from evals.metrics import (
     summarize,
 )
 from evals.run_evals import build_eval_store, evaluate_case, run_cases
+from lantern.agents.graph import build_agent_chain
 from lantern.answer import GroundedAnswer
 from lantern.chains import build_rag_chain
 from lantern.ingest import load_file
 from lantern.retrieval import build_retriever
-from tests.conftest import make_fake_llm
+from tests.conftest import make_fake_agent, make_fake_llm, search_call
 
 # ---- Dataset integrity --------------------------------------------------------
 
@@ -215,3 +216,13 @@ def test_smoke_run_over_real_corpus_and_dataset():
     assert [r.error for r in results] == [None] * len(cases)
     assert all(len(r.retrieved) == 4 for r in results)
     assert summarize(results)["cases"] == len(cases)
+
+
+def test_smoke_run_agent_mode_reports_tool_calls():
+    store = build_eval_store(DeterministicFakeEmbedding(size=64), CORPUS_DIR, 1000, 150)
+    chain = build_agent_chain(make_fake_agent([search_call("q")]), store, k=4)
+
+    results = run(run_cases(load_dataset()[:1], chain, stub_judge(True), concurrency=1))
+
+    assert results[0].error is None
+    assert summarize(results)["mean_tool_calls"] == 1.0

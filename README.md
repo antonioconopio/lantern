@@ -10,6 +10,7 @@ Lantern is a retrieval-augmented generation (RAG) service built with LangChain a
 - **Says "not found" instead of guessing.** Questions the documents don't cover are declined rather than answered from the model's general knowledge.
 - **Follow-up questions.** Per-session chat history, plus a query-rewrite step that turns "what about chapter 3?" into a standalone search query.
 - **Structured, validated output.** Answers are Pydantic models produced with the model provider's native structured outputs, so required fields are always present.
+- **Agent mode.** Send `"mode": "agent"` and a LangGraph agent decides whether to search, how many times, and when to use a calculator. `rag` stays the default.
 - **Evaluation suite.** 28 test cases scoring retrieval, answer correctness (LLM-as-judge), refusals and citation precision.
 - **Fully tested without API keys.** 61 tests run against fake models and an in-memory vector store.
 
@@ -63,6 +64,22 @@ python -m evals.run_evals --fail-under 0.9       # exit 1 below 90% (for CI)
 
 Each run prints failed cases with the expected answer, the actual answer and the judge's reasoning, and saves a full report to `evals/results/`.
 
+### Agent vs RAG
+
+`python -m evals.run_evals --mode rag` vs `--mode agent`, same 28 cases and settings:
+
+| Metric             | RAG    | Agent  |
+| ------------------ | ------ | ------ |
+| Accuracy           | 100%   | 100%   |
+| Refusal accuracy   | 100%   | 100%   |
+| Citation precision | 92%    | 88.5%  |
+| Mean tool calls    | 1.0    | 1.2    |
+| Mean latency       | 1.4 s  | 3.6 s  |
+
+On this single-fact eval set the fixed pipeline matches the agent's accuracy at under half the latency. The agent earns its cost on multi-part or arithmetic questions, which this set barely contains.
+
+The agent lives in [`lantern/agents/`](lantern/agents/): `tools.py` (search, calculator, list documents) and `graph.py` (agent, tools and respond nodes; tool calls capped by `AGENT_MAX_TOOL_CALLS`, default 6).
+
 ## Getting started
 
 Requires Python 3.12 and an [Anthropic API key](https://platform.claude.com/).
@@ -104,7 +121,7 @@ The volume keeps the vector store and uploads across restarts.
 | `POST`   | `/documents`      | Upload and ingest a `.pdf`, `.md` or `.txt` file             |
 | `GET`    | `/documents`      | List ingested documents and chunk counts                     |
 | `DELETE` | `/documents/{id}` | Remove a document and its chunks                             |
-| `POST`   | `/ask`            | Ask a question; pass `session_id` to continue a conversation |
+| `POST`   | `/ask`            | Ask a question; pass `session_id` to continue, `"mode": "agent"` for the agent |
 | `DELETE` | `/sessions/{id}`  | Clear a conversation's history                               |
 | `GET`    | `/health`         | Health check                                                 |
 
@@ -149,6 +166,7 @@ Set in `.env` or as environment variables.
 | `EMBEDDING_MODEL`              | `huggingface:sentence-transformers/all-MiniLM-L6-v2` | Embedding model; runs locally by default        |
 | `RETRIEVAL_K`                  | `4`                                                  | Chunks retrieved per question                   |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | `1000` / `150`                                       | Chunking, in characters                         |
+| `AGENT_MAX_TOOL_CALLS`         | `6`                                                  | Tool-call cap per agent question                |
 | `HISTORY_MAX_MESSAGES`         | `10`                                                 | History sent per turn (2 messages per exchange) |
 | `CHROMA_PERSIST_DIR`           | `data/chroma`                                        | Vector store location                           |
 | `UPLOAD_DIR`                   | `data/uploads`                                       | Uploaded file location                          |
@@ -167,6 +185,7 @@ lantern/
 │   ├── ingest.py        # load, split, embed, store
 │   ├── retrieval.py     # retriever and context formatting
 │   ├── chains.py        # LCEL chains: rewrite, retrieve, answer
+│   ├── agents/          # LangGraph agent: tools.py, graph.py
 │   ├── answer.py        # GroundedAnswer output schema
 │   └── memory.py        # per-session chat history
 ├── evals/               # evaluation suite
@@ -195,7 +214,7 @@ lantern/
 - [x] Conversation memory with query rewriting
 - [x] Evaluation suite
 - [ ] Harder evals on a large real-world document
-- [ ] LangGraph agent that decides when to retrieve and can use other tools
+- [x] LangGraph agent that decides when to retrieve and can use other tools
 - [ ] LangSmith tracing
 - [ ] Persistent chat history (Redis)
 - [ ] Deployed demo

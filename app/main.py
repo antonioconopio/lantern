@@ -15,7 +15,8 @@ from app.config import (
     get_settings,
     get_vector_store,
 )
-from app.schemas import AskRequest, AskResponse, DocumentInfo, Source
+from app.schemas import AskRequest, AskResponse, DocumentInfo, Source, ToolStep
+from lantern.agents.graph import build_agent_chain
 from lantern.chains import build_rag_chain
 from lantern.ingest import (
     SUPPORTED_EXTENSIONS,
@@ -89,10 +90,19 @@ async def ask(
     session_id = req.session_id or uuid.uuid4().hex
     history = histories.get(session_id)
  
-    retriever = build_retriever(store, k=settings.retrieval_k)
-    chain = build_rag_chain(llm, retriever)
+    if req.mode == "agent":
+        chain = build_agent_chain(
+            llm, store, k=settings.retrieval_k, max_tool_calls=settings.agent_max_tool_calls
+        )
+    else:
+        chain = build_rag_chain(llm, build_retriever(store, k=settings.retrieval_k))
     result = await chain.ainvoke({"question": req.question, "history": history})
     answer, docs = result["answer"], result["docs"]
+    # RAG always does exactly one search; report it like the agent's steps.
+    # (An agent that skipped tools legitimately has steps == [].)
+    steps = result["steps"] if "steps" in result else [
+        {"tool": "search_documents", "input": {"query": result["standalone_question"]}}
+    ]
  
     # Save the turn only after a successful answer, so a failed request
     # doesn't leave a question with no reply in the history.
@@ -118,6 +128,8 @@ async def ask(
         sources=sources,
         session_id=session_id,
         standalone_question=result["standalone_question"],
+        mode=req.mode,
+        steps=[ToolStep(**s) for s in steps],
     )
  
  
